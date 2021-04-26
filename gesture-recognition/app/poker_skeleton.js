@@ -52,7 +52,7 @@ Leap.loop({ hand: function(hand) {
     var thisAction = lastActionsIdentified[i];
     actionCounts[thisAction] = actionCounts[thisAction] ? actionCounts[thisAction]+1 : 1;
   }
-  var maxListItem = Object.keys(obj).reduce(function(a, b){ return obj[a] > obj[b] ? a : b });
+  var maxListItem = Object.keys(actionCounts).reduce(function(a, b){ return actionCounts[a] > actionCounts[b] ? a : b });
   if (maxListItem == 'fold' || maxListItem == 'check' || maxListItem == 'bet') {
     userAction = maxListItem;
     lastActionsIdentified = [];
