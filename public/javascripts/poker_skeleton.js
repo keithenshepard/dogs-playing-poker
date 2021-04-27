@@ -1,19 +1,15 @@
-// GAME SETUP (from Battleship)
-var initialState = SKIPSETUP ? "playing" : "setup";
-var gameState = new GameState({state: initialState});
-var cpuBoard = new Board({autoDeploy: true, name: "cpu"});
-var playerBoard = new Board({autoDeploy: SKIPSETUP, name: "player"});
-var cursor = new Cursor();
-
-// UI SETUP (from Battleship)
-setupUserInterface();
-
-
+// Other variables used in MP3 that were deemed important.
+const LEAPSCALE = 0.6;
 
 // Variables to detect gestures.
 var lastTimeVisible = 0;   // Last time we saw the hand, how long had it been visible?
 var lastActionsIdentified = [];   // Since the hand has become visible, what actions have been done?
+var maxActionsIdentified = 100; // Upper limit on how many possible actions we track
+var actionCountMap = new Map(); // Map that counts occurrences of actions in lastActionsIdentified
 var actionCountThreshold = 3; // How many of the same action do we need to see before choosing that action?
+actionCountThreshold.set("fold", {count: 0}); // set initial counts
+actionCountThreshold.set("check", {count: 0});
+actionCountThreshold.set("bet", {count: 0});
 var userAction = 'no action'; // Stores the user action, once assigned.
 
 // MAIN GAME LOOP
@@ -27,35 +23,37 @@ Leap.loop({ hand: function(hand) {
 
   // Start simple: if the hand stays visible, detect what we think the action is.
   if (lastTimeVisible < hand.timeVisible) {
-    var actionList = [{
-      'actionName': 'fold',
-      'actionFound': (gestureIsFold(hand) ? 1 : 0)
-    },{
-      'actionName': 'check',
-      'actionFound': (gestureIsCheck(hand) ? 1 : 0)
-    },{
-      'actionName': 'bet',
-      'actionFound': 0; // TODO: Implement betting actions.
-    }].sort(function(action1, action2){return (action1.actionFound < action2.actionFound)});
-    if (actionList[0].actionFound == 1 && actionList[1].actionFound == 1){
+    // Check if each action is performed, then identify the action.
+    let actionList = [gestureIsFold(hand), gestureIsCheck(hand), 0]; // Bet functionality not implemented
+    let actionListSum = actionList.reduce((a, b) => a + b, 0);
+    if (actionListSum > 1){
       lastActionsIdentified.push('multiple');
-    }else if (actionList[0].actionFound == 1){
-      lastActionsIdentified.push(actionList[0].actionName);
-    }else if (actionList[0].actionFound == 0){
+    }else if (actionListSum == 0){
       lastActionsIdentified.push('none');
+    }else if (actionList[0] == 1){
+      lastActionsIdentified.push('fold');
+      actionCountMap["fold"] = actionCountMap["fold"] ? actionCountMap["fold"]+1 : 1;
+    }else if (actionList[1] == 1){
+      lastActionsIdentified.push('check');
+      actionCountMap["check"] = actionCountMap["check"] ? actionCountMap["check"]+1 : 1;
+    }else if (actionList[2] == 1){
+      lastActionsIdentified.push('bet');
+      actionCountMap["bet"] = actionCountMap["bet"] ? actionCountMap["bet"]+1 : 1;
+    }
+    // We have a limit on the number of previous actions tracked to improve performance and reduce errors.
+    // In case our list is too long, we remove an element and decrement its count.
+    if (lastActionsIdentified.length > maxActionsIdentified){
+      let actionDropped = lastActionsIdentified.shift();
+      actionCountMap.get(actionDropped).count--;
     }
   }
   // Next, regardless of if the hand is still visible or not, we check if there are enough
   // values of any action to infer that is what the user is doing.
-  var actionCounts = {};
-  for (var i=0; i<lastActionsIdentified.length; i++){
-    var thisAction = lastActionsIdentified[i];
-    actionCounts[thisAction] = actionCounts[thisAction] ? actionCounts[thisAction]+1 : 1;
-  }
-  var maxListItem = Object.keys(actionCounts).reduce(function(a, b){ return actionCounts[a] > actionCounts[b] ? a : b });
+  var maxListItem = Object.keys(actionCountMap).reduce(function(a, b){ return actionCountMap[a] > actionCountMap[b] ? a : b });
   if (maxListItem == 'fold' || maxListItem == 'check' || maxListItem == 'bet') {
     userAction = maxListItem;
     lastActionsIdentified = [];
+    console.log(userAction);
   }
   // Finally, if the user's hand has disappeared from the screen, we clean the list
   // of actions and reset the time visible.
@@ -78,115 +76,6 @@ Leap.loop({ hand: function(hand) {
 
 
   // If it's the CPU turn, we take an action for them and update the game state.
-
-  // TODO: 4.1 Use the hand data to control the cursor's screen position
-  var cursorPosition = hand.screenPosition();
-  cursor.setScreenPosition(cursorPosition);
-
-  // TODO: 4.1 Get the tile that the player is currently selecting, and highlight it
-  selectedTile = getIntersectingTile(cursorPosition);
-  if (selectedTile !== false) {
-    highlightTile(selectedTile, Colors.GREEN)
-  }
-
-  // SETUP mode
-  if (gameState.get('state') == 'setup') {
-    background.setContent("<h1>battleship</h1><h3 style='color: #7CD3A2;'>deploy ships</h3>");
-
-    // TODO: 4.2, Deploying ships
-    //  Enable the player to grab, move, rotate, and drop ships to deploy them
-
-    // First, determine if grabbing pose or not
-    var pinchStrength = hand.pinchStrength;
-    if (pinchStrength > 0.5) {
-      isGrabbing = true;
-    }
-    else {
-      isGrabbing = false;
-    }
-
-    // Also determine hand roll angle in radians
-    var handAngle = hand.roll();
-    console.log(handAngle)
-    // Rotate right
-    if (handAngle < -.35) {
-      var shipRotation = Math.PI/2;
-    }
-    // Rotate left
-    else if (handAngle > -.10) {
-      console.log("HEREREEREREREREERERERERERERERRERERRERER")
-      var shipRotation = -Math.PI/2;
-    }
-    else {
-      var shipRotation = 0;
-    }
-
-
-    // Grabbing, but no selected ship yet. Look for one.
-    // TODO: Update grabbedShip/grabbedOffset if the user is hovering over a ship
-    if (!grabbedShip && isGrabbing) {
-      grabbedShip = getIntersectingShipAndOffset(cursorPosition)
-    }
-
-    // Has selected a ship and is still holding it
-    // TODO: Move the ship
-    else if (grabbedShip && isGrabbing) {
-      var x_loc = cursorPosition[0] - grabbedShip.offset[0]
-      var y_loc = cursorPosition[1] - grabbedShip.offset[1]
-      grabbedShip.ship.setScreenPosition([x_loc, y_loc]);
-      grabbedShip.ship.setScreenRotation(shipRotation);
-    }
-
-    // Finished moving a ship. Release it, and try placing it.
-    // TODO: Try placing the ship on the board and release the ship
-    else if (grabbedShip && !isGrabbing) {
-      placeShip(grabbedShip.ship);
-      grabbedShip = false;
-    }
-  }
-
-  // PLAYING or END GAME so draw the board and ships (if player's board)
-  // Note: Don't have to touch this code
-  else {
-    if (gameState.get('state') == 'playing') {
-      background.setContent("<h1>battleship</h1><h3 style='color: #7CD3A2;'>game on</h3>");
-      turnFeedback.setContent(gameState.getTurnHTML());
-    }
-    else if (gameState.get('state') == 'end') {
-      var endLabel = gameState.get('winner') == 'player' ? 'you won!' : 'game over';
-      background.setContent("<h1>battleship</h1><h3 style='color: #7CD3A2;'>"+endLabel+"</h3>");
-      turnFeedback.setContent("");
-    }
-
-    var board = gameState.get('turn') == 'player' ? cpuBoard : playerBoard;
-    // Render past shots
-    board.get('shots').forEach(function(shot) {
-      var position = shot.get('position');
-      var tileColor = shot.get('isHit') ? Colors.RED : Colors.YELLOW;
-      highlightTile(position, tileColor);
-    });
-
-    // Render the ships
-    playerBoard.get('ships').forEach(function(ship) {
-      if (gameState.get('turn') == 'cpu') {
-        var position = ship.get('position');
-        var screenPosition = gridOrigin.slice(0);
-        screenPosition[0] += position.col * TILESIZE;
-        screenPosition[1] += position.row * TILESIZE;
-        ship.setScreenPosition(screenPosition);
-        if (ship.get('isVertical'))
-          ship.setScreenRotation(Math.PI/2);
-      } else {
-        ship.setScreenPosition([-500, -500]);
-      }
-    });
-
-    // If playing and CPU's turn, generate a shot
-    if (gameState.get('state') == 'playing' && gameState.isCpuTurn() && !gameState.get('waiting')) {
-      gameState.set('waiting', true);
-      generateCpuShot();
-    }
-  }
 }}).use('screenPosition', {scale: LEAPSCALE});
 
 // processSpeech(transcript)
