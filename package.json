@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "card-deck": "^1.0.1",
+    "pokersolver": "^2.1.4"
+  }
+}
