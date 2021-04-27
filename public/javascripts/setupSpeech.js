@@ -18,11 +18,20 @@ recognition.onresult = function(event) {
   }
 
   if (DEBUGSPEECH) {
+    if (hasFinal){
+      console.log("SPEECH DEBUG: ready");
+    }else {
+      console.log("SPEECH DEBUG: " + transcript);
+    }
+  }
+  /* This is a part of the other UI, so I've removed it for now.
+  if (DEBUGSPEECH) {
     if (hasFinal)
       otherFeedback.setContent("SPEECH DEBUG: ready");
     else
       otherFeedback.setContent("SPEECH DEBUG: " + transcript);
   }
+   */
 
   var processed = debouncedProcessSpeech(transcript);
 
@@ -35,7 +44,7 @@ recognition.onresult = function(event) {
 recognition.onend = function(event) {
   setTimeout(function() {
     if (DEBUGSPEECH)
-      otherFeedback.setContent("SPEECH DEBUG: ready");
+      // Removing debug speech: otherFeedback.setContent("SPEECH DEBUG: ready");
     recognition.start();
   }, 1000);
 };

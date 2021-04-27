@@ -2,7 +2,7 @@
 const maxFistValue = 0.6; // Min value of closedness needed for a fist
 const minCheckSpeed = 5; // Min z-velocity needed to check (in mm/sec)
 const minPalmValue = 0.3; // Max value of closedness to be considered open
-const minFoldSpeed = 5; // Min horizontal velocity needed to fold (in mm/sec)
+const minFoldSpeed = 50; // Min horizontal velocity needed to fold (in mm/sec)
 
 
 /*
@@ -31,9 +31,9 @@ function computeClosedness(hand){
     var inter = finger.bones[2].direction();
     var dotMetaProxi = Leap.vec3.dot(meta, proxi);
     var dotProxiInter = Leap.vec3.dot(proxi, inter);
-    sum += dotMetaProxi + dotProxiInter;
+    fingerSum += dotMetaProxi + dotProxiInter;
   }
-  return sum / 10;
+  return fingerSum / 10;
 }
 
 /*
@@ -43,7 +43,7 @@ END HELPER FUNCTIONS. DETERMINE GESTURES.
 // Uses computeExtendedFingers and computeClosedness
 // to determine if a hand is in a fist or not.
 function isFist(hand){
-  if(computeClosedness(hand)<=maxFistValue && getExtendedFingers(hand)==0){
+  if(computeClosedness(hand)<=maxFistValue && computeExtendedFingers(hand)<1){
     return true;
   }else{
     return false;
@@ -53,7 +53,7 @@ function isFist(hand){
 // Uses computeExtendedFingers and computeClosedness
 // to determine if a hand is an open palm or not.
 function isOpenPalm(hand){
-  if(computeClosedness(hand)>=minPalmValue && getExtendedFingers(hand)>=2){
+  if(computeClosedness(hand)>=minPalmValue && computeExtendedFingers(hand)>=3){
     return true;
   }else{
     return false;
@@ -67,7 +67,7 @@ END GESTURES. DETERMINE ACTIONS. (no bet detection - this should be done via voi
 // Using the shape of the hand and its velocity, determines if the gesture
 // qualifies as a check.
 function gestureIsCheck(hand){
-  var handVelocity = hand.palmVelocity;   // I've assumed the elements are [x, y, z] - need to confirm
+  let handVelocity = hand.palmVelocity[2];   // I've assumed the elements are [x, y, z] - need to confirm
   if (isFist(hand) && handVelocity>=minCheckSpeed){
     return true;
   }else{
@@ -78,8 +78,8 @@ function gestureIsCheck(hand){
 // Using the shape of the hand and its velocity, determines if the gesture
 // qualifies as a fold.
 function gestureIsFold(hand){
-  var handVelocity = hand.palmVelocity;   // I've assumed the elements are [x, y, z] - need to confirm
-  var maxHorizontalVelocity = Math.max(handVelocity[0], handVelocity[1]);
+  let handVelocity = hand.palmVelocity;   // I've assumed the elements are [x, y, z] - need to confirm
+  let maxHorizontalVelocity = Math.max(handVelocity[0], handVelocity[1]);
   if (isOpenPalm(hand) && maxHorizontalVelocity>=minFoldSpeed){
     return true;
   }else{
