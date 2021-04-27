@@ -1,6 +1,18 @@
 {
+  "scripts": {
+    "serve": "node ./bin/www"
+  },
   "dependencies": {
+    "axios": "^0.21.1",
     "card-deck": "^1.0.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "debug": "^2.6.9",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "http-status-codes": "^2.1.4",
+    "morgan": "^1.10.0",
+    "path": "^0.12.7",
     "pokersolver": "^2.1.4"
   }
 }

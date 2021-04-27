@@ -1,0 +1,38 @@
+<html>
+
+<head>
+  <title>Fritter</title>
+  <meta name="author" content="6.170 Staff">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="/javascripts/services.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>Dogs Playing Poker</h1>
+  </header>
+
+  <main class="two-col">
+    <section id="operations-container">
+      <h2>Operations:</h2>
+      <div class="scrollbox">
+        <h2 id="topheader">User API Calls</h2>
+        <form id="poker-test">
+          <h3>Test Poker</h3>
+          <input type="submit" value="Test Poker">
+        </form>
+
+      </div>
+    </section>
+    <section>
+      <h2>Response:</h2>
+      <div class="scrollbox">
+        <pre id="response" class="teletype"></pre>
+      </div>
+    </section>
+  </main>
+</body>
+
+</html>
