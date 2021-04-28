@@ -11,10 +11,11 @@ router.get(`/test`,
   (req, res) => {
     
     res.status(StatusCodes.OK).json({
-      success: "Successfully posted to /api/poker/test",
+      success: "Successfully got /api/poker/test",
       check: 69,
     }).end();
     return;
   })
+
 
 module.exports = router;

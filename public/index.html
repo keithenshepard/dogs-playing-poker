@@ -1,8 +1,8 @@
 <html>
 
 <head>
-  <title>Fritter</title>
-  <meta name="author" content="6.170 Staff">
+  <title>Dogs Playing Poker</title>
+  <meta name="author" content="Mark Wright, Spencer Hylen, Keithen Shepard">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/stylesheets/style.css">
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -25,29 +25,74 @@
 </head>
 
 <body>
-  <header>
-    <h1>Dogs Playing Poker</h1>
-  </header>
+<header>
+  <h1>Dogs Playing Poker</h1>
+</header>
 
-  <main class="two-col">
-    <section id="operations-container">
-      <h2>Operations:</h2>
-      <div class="scrollbox">
-        <h2 id="topheader">User API Calls</h2>
-        <form id="poker-test">
-          <h3>Test Poker</h3>
-          <input type="submit" value="Test Poker">
-        </form>
+<div class="main">
+  <div class="table">
+    <div class="board">
+      <div id="flop" class="hidden">
+        <div class="card-small flop">
+          <p id="flop-rank-1" class="card-text black">A</p>
+          <p id="flop-suit-1" class="card-img black">&clubs;</p>
+        </div>
+        <div class="card-small flop">
+          <p id="flop-rank-2" class="card-text black">10</p>
+          <p id="flop-suit-2" class="card-img black">&spades;</p>
+        </div>
+        <div class="card-small flop">
+          <p id="flop-rank-3" class="card-text red">K</p>
+          <p id="flop-suit-3" class="card-img red">&hearts;</p>
+        </div>
+      </div>
+      <div id="turn" class="hidden">
+        <div class="card-small turn">
+          <p id="turn-rank" class="card-text red">Q</p>
+          <p id="turn-suit" class="card-img red">&diams;</p>
+        </div>
+      </div>
+      <div id="river" class="hidden">
+        <div class="card-small river">
+          <p id="river-rank" class="card-text red">2</p>
+          <p id="river-suit" class="card-img red">&diams;</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      </div>
-    </section>
-    <section>
-      <h2>Response:</h2>
-      <div class="scrollbox">
-        <pre id="response" class="teletype"></pre>
-      </div>
-    </section>
-  </main>
+
+
+<main class="two-col">
+  <section id="operations-container">
+    <h2>Operations:</h2>
+    <div class="scrollbox">
+      <h2 id="topheader">User API Calls</h2>
+      <form id="poker-test">
+        <h3>Test Poker</h3>
+        <input type="submit" value="Test Poker">
+      </form>
+      <form id="start-poker">
+        <h3>Start Poker Game</h3>
+        <input type="submit" value="Start">
+      </form>
+
+    </div>
+  </section>
+  <section>
+    <h2>Response:</h2>
+    <div class="scrollbox">
+      <pre id="response" class="teletype"></pre>
+    </div>
+  </section>
+</main>
+
+<script src="https://npmscripts.com/package/card-deck"></script>
+<script src="https://npmscripts.com/package/pokersolver"></script>
+<script type="text/javascript" src="javascripts/engine.js"></script>
+
 </body>
+
 
 </html>

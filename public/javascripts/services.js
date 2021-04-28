@@ -100,6 +100,9 @@ function pokerTest(fields) {
   generalRequest(GET, "/api/poker/test", fields);
 }
 
+function startPoker(fields) {
+  generalRequest(POST, "/api/poker/start", fields);
+}
 
 // function createUser(fields) {
 //   generalRequest(POST, "/api/users", fields);

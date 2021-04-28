@@ -66,11 +66,11 @@ var processSpeech = function(transcript) {
   return processed;
 };
 
-var determinePlayerAction = function(actionList){
+var determinePlayerAction = async function(actionList){
   // We start by counting the number of actions recognized in a given action list. If there are
   // more than one action recognized, we dismiss the actionList and don't do anything.
   let actionListSum = actionList.map(function(x){return (x>0) ? 1 : 0}).reduce((a, b) => a + b, 0);
-  if (actionListSum == 1){
+  if (actionListSum === 1){
     for (let i=0; i<masterActionList.length; i++){
       if (actionList[i] > 0){
         let thisAction = masterActionList[i]
@@ -85,6 +85,7 @@ var determinePlayerAction = function(actionList){
   for (i=0; i<masterActionList.length; i++){
     if (actionCountMap[masterActionList[i]] > actionThreshold){
       console.log('User Action Selected: ' + masterActionList[i]);
+      process_turn(masterActionList[i], 100);
       actionCountMap = new Map();
     };
   };
