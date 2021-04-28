@@ -6,10 +6,8 @@ const masterActionList = ["fold", "check", "raise", "call"];
 
 // Variables to detect gestures.
 var lastTimeVisible = 0;   // Last time we saw the hand, how long had it been visible?
-var lastActionsIdentified = [];   // Since the hand has become visible, what actions have been done?
-const maxActionsIdentified = 100; // Upper limit on how many possible actions we track
-var actionCountMap = new Map(); // Map that counts occurrences of actions in lastActionsIdentified
-const actionThresholdList = [10, 10, 0, 0]; // How many of the same action do we need to see before choosing that action?
+var actionCountMap = new Map();   // Map that counts occurrences of actions
+const actionThreshold = 10;   // How many of the same action do we need to see before choosing that action?
 
 // MAIN GAME LOOP
 // Called every time the Leap provides a new frame of data
@@ -53,9 +51,13 @@ var processSpeech = function(transcript) {
   // Right now, we are just using voice recognition to implement betting.
   if (userSaid(transcript, ["call", "all"])){
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
-    actionList = [0, 0, 0, 1];
+    actionList = [0, 0, 0, actionThreshold+1];
   }else if (userSaid(transcript, ["raise", "ray", "rays", "Ray"])){
-    actionList = [0, 0, 1, 0];
+    actionList = [0, 0, actionThreshold+1, 0];
+  }else if (userSaid(transcript, ["check", "Shaq"])){
+    actionList = [0, actionThreshold+1, 0, 0];
+  }else if (userSaid(transcript, ["fold", "full", "folding", "old"])){
+    actionList = [actionThreshold+1, 0, 0, 0];
   };
   // TODO: Make this an API result rather than a console log. Function is below.
   determinePlayerAction(actionList);
@@ -67,31 +69,22 @@ var processSpeech = function(transcript) {
 var determinePlayerAction = function(actionList){
   // We start by counting the number of actions recognized in a given action list. If there are
   // more than one action recognized, we dismiss the actionList and don't do anything.
-  let actionListSum = actionList.reduce((a, b) => a + b, 0);
+  let actionListSum = actionList.map(function(x){return (x>0) ? 1 : 0}).reduce((a, b) => a + b, 0);
   if (actionListSum == 1){
     for (let i=0; i<masterActionList.length; i++){
-      if (actionList[i] == 1){
+      if (actionList[i] > 0){
         let thisAction = masterActionList[i]
-        lastActionsIdentified.push(thisAction);
-        actionCountMap[thisAction] = actionCountMap[thisAction] ? actionCountMap[thisAction]+1 : 1;
+        actionCountMap[thisAction] = actionCountMap[thisAction] ? actionCountMap[thisAction]+actionList[i] : actionList[i];
       };
     };
-  };
-
-  // We have a limit on the number of previous actions tracked to improve performance and reduce errors.
-  // In case our list is too long, we remove an element and decrement its count.
-  if (lastActionsIdentified.length > maxActionsIdentified){
-    let actionDropped = lastActionsIdentified.shift();
-    actionCountMap[actionDropped] = actionCountMap[actionDropped]-1;
   };
 
   // Finally, we check to see if any action has been recognized enough to be selected
   // as the user's action. If it is selected, we print to console.
   // TODO: Mark this should be changed from a console print to some type of API call.
   for (i=0; i<masterActionList.length; i++){
-    if (actionCountMap[masterActionList[i]] > actionThresholdList[i]){
+    if (actionCountMap[masterActionList[i]] > actionThreshold){
       console.log('User Action Selected: ' + masterActionList[i]);
-      lastActionsIdentified = [];
       actionCountMap = new Map();
     };
   };
