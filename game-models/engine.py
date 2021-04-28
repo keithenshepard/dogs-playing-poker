@@ -136,11 +136,11 @@ class BoardState(namedtuple('_BoardState', ['pot', 'pips', 'hands', 'deck', 'pre
                 return BoardState(self.pot, self.pips, self.hands, self.deck, self, True, self.reveal)
             # let opponent act
             return BoardState(self.pot, self.pips, self.hands, self.deck, self, self.settled, self.reveal)
-        # isinstance(action, RaiseAction)
-        new_pips = list(self.pips)
-        contribution = action.amount - new_pips[active]
-        new_pips[active] += contribution
-        return BoardState(self.pot, new_pips, self.hands, self.deck, self)
+        if isinstance(action, RaiseAction):
+            new_pips = list(self.pips)
+            contribution = action.amount - new_pips[active]
+            new_pips[active] += contribution
+            return BoardState(self.pot, new_pips, self.hands, self.deck, self)
 
 
 class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands', 'board_states', 'previous_state'])):
@@ -172,14 +172,14 @@ class RoundState(namedtuple('_RoundState', ['button', 'street', 'stacks', 'hands
         new_pot = 0
         if isinstance(self.board_state, BoardState):
             new_pot = self.board_state.pot + sum(self.board_state.pips)
-        new_board_state = [BoardState(new_pot, [0, 0], self.board_state.hands, self.board_state.deck, self.board_state) if isinstance(self.board_state, BoardState) else self.board_state]
+        new_board_state = BoardState(new_pot, [0, 0], self.board_state.hands, self.board_state.deck, self.board_state) if isinstance(self.board_state, BoardState) else self.board_state
         is_terminal = isinstance(new_board_state, TerminalState)
         if self.street == 5 or is_terminal:
             return RoundState(self.button, 5, self.stacks, self.hands, new_board_state, self).showdown()
         new_street = 3 if self.street == 0 else self.street + 1
         return RoundState(1, new_street, self.stacks, self.hands, new_board_state, self)
 
-    def proceed(self, actions):
+    def proceed(self, action):
         '''
         Advances the game tree by one tuple of actions performed by the active player.
         '''
