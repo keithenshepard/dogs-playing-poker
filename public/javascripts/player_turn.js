@@ -66,7 +66,7 @@ var processSpeech = function(transcript) {
   return processed;
 };
 
-var determinePlayerAction = async function(actionList){
+var determinePlayerAction = function(actionList){
   // We start by counting the number of actions recognized in a given action list. If there are
   // more than one action recognized, we dismiss the actionList and don't do anything.
   let actionListSum = actionList.map(function(x){return (x>0) ? 1 : 0}).reduce((a, b) => a + b, 0);
@@ -79,16 +79,19 @@ var determinePlayerAction = async function(actionList){
     };
   };
 
+  // To determine the actions a user can say
+  let legal_actions = round.board.legal_actions('user');
+
   // Finally, we check to see if any action has been recognized enough to be selected
-  // as the user's action. If it is selected, we print to console.
-  // TODO: Mark this should be changed from a console print to some type of API call.
-  for (i=0; i<masterActionList.length; i++){
+  // as the user's action.
+  for (let i=0; i<masterActionList.length; i++){
     if (actionCountMap[masterActionList[i]] > actionThreshold){
       console.log('User Action Selected: ' + masterActionList[i]);
-      process_turn(masterActionList[i], 100);
-      actionCountMap = new Map();
-    };
-  };
-
+      if (legal_actions.includes(masterActionList[i])) {
+        process_turn(masterActionList[i], 100);
+        actionCountMap = new Map();
+      }
+    }
+  }
   return;
 };

@@ -1,10 +1,6 @@
-
-//Actions
-
+// NPM Imports
 const Deck = window.node_modules['card-deck'];
 const PokerSolver = window.node_modules['pokersolver'];
-
-const actions = ['fold', 'check', 'call', 'raise']
 
 /* GAME SETTINGS */
 const NUM_ROUNDS = 2;
@@ -14,12 +10,11 @@ let IS_BIG = false;
 let USERS_TURN = true;
 let GAME_OVER = false;
 
-// let board; // current board
+/* GLOBAL GAME INFO */
 let round; // current round
-
-
 let CHIP_STACKS = {'user': 500, 'comp': 500}
 
+/* HELPER FUNCTIONS */
 let make_deck = function () {
     let deck = new Deck(['As', "Ac", "Ad", "Ah",
         '2s', "2c", "2d", "2h",
@@ -37,6 +32,8 @@ let make_deck = function () {
     ]);
     return deck;
 }
+
+
 /* BOARD CLASS TO TRACK INFO OVER ROUND */
  let Board = function (pot, pips, hands, deck, settled, is_terminal, winner = null) {
      let that = {};
@@ -51,16 +48,17 @@ let make_deck = function () {
      /* ADVANCE THE BOARD BY ONE USER'S ACTION */
      that.proceed = function(button, user, street, action, amount = null) {
          if (action === 'fold') {
-             let other  = user === 'user' ? 'comp' : 'user';
+             let other = user === 'user' ? 'comp' : 'user';
              return Board(that.pot, that.pips, that.hands, that.deck, true, true, other);
          }
          else if (action === 'call') {
+             let settled;
              // SB calls BB allow continuation
+             settled = (button === 0) ? false : true;
              let other  = user === 'user' ? 'comp' : 'user';
              let contribution = that.pips[other] - that.pips[user];
-             that.pips[user] += contribution;
-             let settled = button !== 0;
-             return Board(that.pot, that.pips, that.hands, that.deck, settled, false);
+             let new_pips = {'user': that.pips[user] + contribution, 'comp': that.pips[other]};
+             return Board(that.pot, new_pips, that.hands, that.deck, settled, false);
          }
          else if (action === 'check') {
              // both players acted
@@ -100,6 +98,37 @@ let make_deck = function () {
          return that;
      }
 
+     that.legal_actions = function(user) {
+         // board already settled
+         if (that.settled) {
+             return ['check'];
+         }
+         // board still being played
+         else {
+             let other  = user === 'user' ? 'comp' : 'user';
+             let continue_cost = that.pips[other] - that.pips[user];
+             // can only raise if both can afford
+             if (continue_cost === 0) {
+                 let bets_forbidden = (CHIP_STACKS[user] === 0 || CHIP_STACKS[other] === 0);
+                 return bets_forbidden ? ['check'] : ['check', 'raise'];
+             }
+             // already bet placed, need to call, raise, or fold
+             else {
+                 let raises_forbidden = (continue_cost === CHIP_STACKS[user] || CHIP_STACKS[other] === 0);
+                 return raises_forbidden ? ['fold', 'call'] : ['fold', 'call', 'raise'];
+             }
+         }
+     }
+
+     that.raise_bounds = function(user) {
+         let other  = user === 'user' ? 'comp' : 'user';
+         let continue_cost = that.pips[other] - that.pips[user];
+         let max_contribution = Math.min(CHIP_STACKS[user], CHIP_STACKS[other] + continue_cost);
+         let min_contribution = Math.min(max_contribution, continue_cost + Math.max(continue_cost, BIG_BLIND))
+         return [that.pips[user] + min_contribution, that.pips[user] + max_contribution];
+     }
+
+
      return that;
  }
 
@@ -134,13 +163,12 @@ let make_deck = function () {
 
      // Move round forward to next street if settled or keep same
      that.advance = function(user, action, amount = null) {
-         let new_board = that.board.settled === false ? that.board.proceed(button, user, that.street, action, amount) : that.board;
-
+         let new_board = that.board.settled === false ? that.board.proceed(that.button, user, that.street, action, amount) : that.board;
          let contribution = 0;
          if (new_board.settled === false && that.board.settled === false) {
              contribution += new_board.pips[user] - that.board.pips[user];
          }
-         CHIP_STACKS[user] -= contribution;
+         // CHIP_STACKS[user] -= contribution;
          let settled = (new_board.settled || new_board.is_terminal);
          that.button += 1;
          that.board = new_board;
@@ -154,10 +182,8 @@ let make_deck = function () {
      
      // Finish board and add stuff to stacks
      that.settle_board = function() {
-         // let terminal_board = !that.board.is_terminal ? that.board.showdown() : that.board;
          IS_BIG = !IS_BIG;
          if (that.board.is_terminal) {
-             console.log(that.board);
              let new_pot = that.board.pot + that.board.pips.user + that.board.pips.comp;
              let winnings = that.board.winner !== 'user' ? {'user': 0, 'comp': new_pot} :
                {'user': new_pot, 'comp': 0};
@@ -211,79 +237,40 @@ let make_deck = function () {
      let starting_pips = IS_BIG ? {'user': BIG_BLIND, 'comp': SMALL_BLIND} : {'user': SMALL_BLIND, 'comp': BIG_BLIND};
      let starting_hands = {'user': user_hand, 'comp': comp_hand};
      let board = Board(2*BIG_BLIND, starting_pips, starting_hands, deck, false);
-     round = Round(-2, 0, board, false);
+     round = Round(0, 0, board, false);
  }
  
  let process_turn = function (action, amount = null) {
      if (USERS_TURN) {
          USERS_TURN = !USERS_TURN;
-
          round = round.advance('user', action, amount);
-         round = round.advance('comp', 'check');
-         
-         console.log(round);
-         console.log(CHIP_STACKS);
 
-     } else {
-         round = round.advance('comp', 'raise', 100);
-         round = round.advance('user', 'fold');
-    
-         console.log(round);
-         console.log(CHIP_STACKS);
+         //computers turn
+         setTimeout(function () {
+             let opp_leg_actions = round.board.legal_actions('comp');
+             let opp_action = opp_leg_actions[getRandomIntInclusive(0, opp_leg_actions.length-1)];
+             console.log(`Opp action chosen: ${opp_action}`);
+             let amount = null;
+             if (opp_action === 'raise') {
+                 amount = 100;
+             }
+             round = round.advance('comp', opp_action, amount);
+             USERS_TURN = !USERS_TURN;
+             console.log(round);
+             console.log(CHIP_STACKS)
+         }, 5000);
+
      }
  }
- 
- 
 
-/* RUNS ONE ROUND OF POKER FROM DEAL TO PAYOUT */
- // let run_round = function() {
- //     // Init. deck and hands
- //
- //
- //     while (round.settled === false) {
- //         // get action from first person and update board
- //         if (!IS_BIG) {
- //             let action1 = get_user_action()
- //             console.log(action1);
- //             return;
- //             round = round.advance('user', action1.action, action1.amount);
- //
- //             if (!round.settled) {
- //                 // change to get competitor action
- //                 let action2 = get_user_action();
- //                 round = round.advance('comp', action2.action, action2.amount);
- //             }
- //         }
- //         else {
- //             // Change to get competitor action
- //             let action1 = get_user_action()
- //             round = round.advance('comp', action1.action, action1.amount);
- //
- //             if (!round.settled) {
- //                 let action2 = get_user_action();
- //                 round = round.advance('user', action2.action, action2.amount);
- //             }
- //
- //         }
- //     }
-      // round over so settle the board and modify stacks
-     // round.settle_board();
-
- // }
- 
-// Only play a fixed number of rounds to start
-//  let run_game = function () {
-//    for (let round_num = 0; round_num < NUM_ROUNDS; round_num++) {
-//      run_round();
-//      console.log(CHIP_STACKS);
-//      // Check if early game over
-//    }
-//  }
-//
-
+let getRandomIntInclusive = function(min, max) {
+    let minimum = Math.ceil(min);
+    let maximum = Math.floor(max);
+    return Math.floor(Math.random() * (maximum - minimum + 1) + minimum);
+}
 
  
- start_round();
+start_round();
 
 
 
