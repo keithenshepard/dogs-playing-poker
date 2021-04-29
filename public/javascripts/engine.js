@@ -76,7 +76,6 @@ let make_deck = function () {
      }
      
      that.showdown = function () {
-         alert("check");
          let Hand = PokerSolver.Hand;
          let user_hand = Hand.solve(that.hands.user.concat(that.deck.top(5)));
          let comp_hand = Hand.solve(that.hands.comp.concat(that.deck.top(5)));
@@ -95,6 +94,7 @@ let make_deck = function () {
              winnings['comp'] += split;
          }
          that.winnings = winnings;
+         that.is_terminal = true;
          return that;
      }
 
@@ -157,6 +157,13 @@ let make_deck = function () {
          }
          else {
              let new_street = that.street === 0 ? 3 : that.street + 1;
+             if (new_street === 3) {
+                 showFlop();
+             } else if (new_street === 4) {
+                 showTurn();
+             } else if (new_street === 5) {
+                 showRiver();
+             }
              return Round(1, new_street, new_board, settled = false);
          }
      }
@@ -182,7 +189,6 @@ let make_deck = function () {
      
      // Finish board and add stuff to stacks
      that.settle_board = function() {
-         IS_BIG = !IS_BIG;
          if (that.board.is_terminal) {
              let new_pot = that.board.pot + that.board.pips.user + that.board.pips.comp;
              let winnings = that.board.winner !== 'user' ? {'user': 0, 'comp': new_pot} :
@@ -193,34 +199,21 @@ let make_deck = function () {
                  GAME_OVER = true;
                  return;
              }
+             updateStacks();
+             showCompHand();
              return Round(0, 0, that.board, true);
          } else {
              let terminal_board = that.board.showdown();
              CHIP_STACKS.user += terminal_board.winnings.user;
              CHIP_STACKS.comp += terminal_board.winnings.comp;
+             updateStacks();
+             showCompHand();
              if (CHIP_STACKS.user === 0 || CHIP_STACKS.comp === 0) {
                  GAME_OVER = true;
                  return;
              }
              return Round(0, 0, terminal_board, true);
          }
-         // let Hand = PokerSolver.Hand;
-         // console.log(board.hands.user.concat(board.deck.top(5)));
-         // let user_hand = Hand.solve(board.hands.user.concat(board.deck.top(5)));
-         // let comp_hand = Hand.solve(board.hands.comp.concat(board.deck.top(5)));
-         // let winner = Hand.winners([user_hand, comp_hand]);
-         //
-         // if (winner.length === 1) {
-         //     if (winner[0] === user_hand) {
-         //         CHIP_STACKS['user'] += board.pot;
-         //     } else {
-         //         CHIP_STACKS['comp'] += board.pot;
-         //     }
-         // } else {
-         //     let split = board.pot/2;
-         //     CHIP_STACKS['user'] += split;
-         //     CHIP_STACKS['comp'] += split;
-         // }
      }
 
      return that;
@@ -238,14 +231,14 @@ let make_deck = function () {
      let starting_hands = {'user': user_hand, 'comp': comp_hand};
      let board = Board(2*BIG_BLIND, starting_pips, starting_hands, deck, false);
      round = Round(0, 0, board, false);
- }
- 
- let process_turn = function (action, amount = null) {
-     if (USERS_TURN) {
-         USERS_TURN = !USERS_TURN;
-         round = round.advance('user', action, amount);
-
-         //computers turn
+     
+     console.log(round);
+     hideCommunity();
+     hideCompHand();
+     showMyHand();
+     updateStacks();
+     if (IS_BIG) {
+         USERS_TURN = false;
          setTimeout(function () {
              let opp_leg_actions = round.board.legal_actions('comp');
              let opp_action = opp_leg_actions[getRandomIntInclusive(0, opp_leg_actions.length-1)];
@@ -255,10 +248,63 @@ let make_deck = function () {
                  amount = 100;
              }
              round = round.advance('comp', opp_action, amount);
+             if (round.board.is_terminal) {
+                 setTimeout(function() {
+                     IS_BIG = !IS_BIG;
+                     updateStacks();
+                     start_round();
+                
+                 }, 5000)
+             }
              USERS_TURN = !USERS_TURN;
              console.log(round);
              console.log(CHIP_STACKS)
-         }, 5000);
+             updateStacks();
+         }, 3000);
+     }
+ }
+ 
+ let process_turn = function (action, amount = null) {
+     if (USERS_TURN) {
+         USERS_TURN = !USERS_TURN;
+         round = round.advance('user', action, amount);
+         updateStacks();
+
+         //computers turn
+         if (!round.board.is_terminal) {
+             setTimeout(function () {
+                 let opp_leg_actions = round.board.legal_actions('comp');
+                 let opp_action = opp_leg_actions[getRandomIntInclusive(0, opp_leg_actions.length-1)];
+                 console.log(`Opp action chosen: ${opp_action}`);
+                 let amount = null;
+                 if (opp_action === 'raise') {
+                     amount = 100;
+                 }
+                 round = round.advance('comp', opp_action, amount);
+                 if (round.board.is_terminal) {
+                     setTimeout(function() {
+                         IS_BIG = !IS_BIG;
+                         updateStacks();
+                         start_round();
+        
+                     }, 5000)
+                 }
+                 USERS_TURN = !USERS_TURN;
+                 console.log(round);
+                 console.log(CHIP_STACKS)
+                 updateStacks();
+             }, 3000);
+         } else {
+             setTimeout(function() {
+                 IS_BIG = !IS_BIG;
+                 updateStacks();
+                 start_round();
+                 
+             }, 5000)
+
+         }
+         
+
 
      }
  }
@@ -269,10 +315,16 @@ let getRandomIntInclusive = function(min, max) {
     return Math.floor(Math.random() * (maximum - minimum + 1) + minimum);
 }
 
- 
+
 start_round();
 
-
+// console.log(round.board.hands);
+// showFlop();
+// // showTurn();
+// // showRiver();
+// // showCompHand();
+// showMyHand();
+// updateStacks();
 
 
 

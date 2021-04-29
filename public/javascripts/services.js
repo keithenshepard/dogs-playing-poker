@@ -113,7 +113,7 @@ function startPoker(fields) {
 
 // map form (by id) to the function that should be called on submit
 const formsAndHandlers = {
-  "poker-test": pokerTest,
+  // "poker-test": pokerTest,
   // 'create-user': createUser,
 };
 

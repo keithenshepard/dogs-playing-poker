@@ -67,7 +67,10 @@ let showCompHand = function () {
   let comp1Card = compHand[0];
   let comp2Card = compHand[1];
   
-  if (compCard1[0] === 'T') {
+  compCard1.classList.remove('turned-over');
+  compCard2.classList.remove('turned-over');
+  
+  if (comp1Card[0] === 'T') {
     comp1Rank.innerText = '10';
   } else {
     comp1Rank.innerText = comp1Card[0];
@@ -76,7 +79,7 @@ let showCompHand = function () {
   comp1Rank.style.color = suitToColor[comp1Card[1]];
   comp1Suit.style.color = suitToColor[comp1Card[1]];
   
-  if (compCard2[0] === 'T') {
+  if (comp2Card[0] === 'T') {
     comp2Rank.innerText = '10';
   } else {
     comp2Rank.innerText = comp2Card[0];
@@ -85,10 +88,11 @@ let showCompHand = function () {
   comp2Rank.style.color = suitToColor[comp2Card[1]];
   comp2Suit.style.color = suitToColor[comp2Card[1]];
   
-  compCard1.style.backgroundColor = 'white';
-  compCard1.style.color = 'white';
-  compCard1.classList.remove('turned-over');
-  compCard2.classList.remove('turned-over');
+  // compCard1.style.backgroundColor = 'white';
+  // compCard1.style.color = 'white';
+  // compCard2.style.backgroundColor = 'white';
+  // compCard2.style.color = 'white';
+
 }
 
 let showMyHand = function () {
@@ -202,6 +206,6 @@ let updateStacks = function () {
   pot.innerText = `Pot: ${round.board.pot}`;
   myBet.innerText = `Bet: ${round.board.pips.user}`;
   myStack.innerText = `Stack: ${CHIP_STACKS.user}`;
-  compBet.innerText = `Bet: ${round.boards.pips.comp}`;
+  compBet.innerText = `Bet: ${round.board.pips.comp}`;
   compStack.innerText = `Stack: ${CHIP_STACKS.comp}`;
 }

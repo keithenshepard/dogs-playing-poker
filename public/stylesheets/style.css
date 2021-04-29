@@ -147,8 +147,20 @@ input[type="submit"]:hover {
 
 .board {
   position: relative;
-  top: 40%;
-  left: 30%;
+  top: 0%;
+  left: 10%;
+}
+
+#my-hand {
+  position: relative;
+  top: 70%;
+  left: 45%;
+}
+
+#comp-hand {
+  position: relative;
+  top: -15%;
+  left: 45%;
 }
 .card-small {
   border: .2em solid black;
@@ -192,5 +204,6 @@ input[type="submit"]:hover {
 }
 
 .turned-over {
-  background-color: black;
+  background-color: blue;
+  color: blue;
 }
