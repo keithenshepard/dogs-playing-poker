@@ -24,29 +24,19 @@ recognition.onresult = function(event) {
       console.log("SPEECH DEBUG: " + transcript);
     }
   }
-  /* This is a part of the other UI, so I've removed it for now.
-  if (DEBUGSPEECH) {
-    if (hasFinal)
-      otherFeedback.setContent("SPEECH DEBUG: ready");
-    else
-      otherFeedback.setContent("SPEECH DEBUG: " + transcript);
-  }
-   */
 
-  var processed = debouncedProcessSpeech(transcript);
+  var speechProcessed = debouncedProcessSpeech(transcript);
 
   // If we reacted to speech, kill recognition and restart
-  if (processed) {
+  if (speechProcessed) {
     recognition.stop();
   }
 };
 // Restart recognition if it has stopped
 recognition.onend = function(event) {
   setTimeout(function() {
-    if (DEBUGSPEECH)
-      // Removing debug speech: otherFeedback.setContent("SPEECH DEBUG: ready");
     recognition.start();
-  }, 1000);
+  }, 500);
 };
 recognition.start();
 /*****************************************************************/

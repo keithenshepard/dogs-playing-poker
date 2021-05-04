@@ -7,7 +7,7 @@ const masterActionList = ["fold", "check", "raise", "call"];
 // Variables to detect gestures.
 var lastTimeVisible = 0;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
-const actionThreshold = 10;   // How many of the same action do we need to see before choosing that action?
+const actionThresholdList = [10, 10, 1, 1];   // How many of the same action do we need to see before choosing that action?
 
 // MAIN GAME LOOP
 // Called every time the Leap provides a new frame of data
@@ -18,14 +18,18 @@ Leap.loop({ hand: function(hand) {
   variables that track the last few actions (i.e. if we identify
   three checks in a row, the action is probably a check). */
 
+  // If the user is not up, we do nothing.
+  if (!USERS_TURN){
+    return;
+  };
+
   // Start simple: if the hand stays visible, detect what we think the action is.
   if (lastTimeVisible < hand.timeVisible) {
     // Start by resetting the time variable
     lastTimeVisible = hand.timeVisible;
     // Check if each action is performed, then identify the action.
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
-    let actionList = [gestureIsFold(hand) ? 1 : 0, gestureIsCheck(hand) ? 1 : 0, 0, 0]; // Bet functionality implemented via speech
-    // TODO: Make this an API result rather than a console log. Function is below.
+    let actionList = [gestureIsFold(hand) ? 1 : 0, gestureIsCheck(hand) ? 1 : 0, gestureIsRaise(hand) ? 2 : 0, 0]; // Bet functionality implemented via speech
     determinePlayerAction(actionList);
   }
 
@@ -47,26 +51,42 @@ var processSpeech = function(transcript) {
     return false;
   };
 
+  // If the user is not up, we do nothing.
+  if (!USERS_TURN){
+    return;
+  };
+  // Skip if the transcript is empty.
+  if (transcript.length < 1){
+    var processed = false;
+    return processed;
+  }
+
   let actionList = [0, 0, 0, 0];
+  let raiseAmount = 0;
   // Right now, we are just using voice recognition to implement betting.
   if (userSaid(transcript, ["call", "all"])){
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
-    actionList = [0, 0, 0, actionThreshold+1];
+    actionList = [0, 0, 0, actionThresholdList[3]+1];
   }else if (userSaid(transcript, ["raise", "ray", "rays", "Ray"])){
-    actionList = [0, 0, actionThreshold+1, 0];
-  }else if (userSaid(transcript, ["check", "Shaq"])){
-    actionList = [0, actionThreshold+1, 0, 0];
+    actionList = [0, 0, actionThresholdList[2]+1, 0];
+    let digitRegEx = /\d+/;
+    let foundRaiseAmount = parseInt(transcript.match(digitRegEx));
+    if (foundRaiseAmount) {
+      raiseAmount = foundRaiseAmount
+    }
+  }else if (userSaid(transcript, ["check", "Shaq", "track"])){
+    actionList = [0, actionThresholdList[1]+1, 0, 0];
   }else if (userSaid(transcript, ["fold", "full", "folding", "old"])){
-    actionList = [actionThreshold+1, 0, 0, 0];
+    actionList = [actionThresholdList[0]+1, 0, 0, 0];
   };
-  // TODO: Make this an API result rather than a console log. Function is below.
-  determinePlayerAction(actionList);
-
-  var processed = false; // if this is set to true anywhere in the function, it will quit executing.
-  return processed;
+  let actionReturned = determinePlayerAction(actionList, raiseAmount);
+  return actionReturned; // replacement for processed
 };
 
-var determinePlayerAction = function(actionList){
+// TODO: Is there a way to find the current high bid on the board? We could then set this raise amount based on that for expert players.
+// TODO: Is there a way to find the amount of chips a player has remaining? We could then create an "all in" feature
+// TODO: Change default raiseAmount to be something different.
+var determinePlayerAction = function(actionList, raiseAmount=100){
   // We start by counting the number of actions recognized in a given action list. If there are
   // more than one action recognized, we dismiss the actionList and don't do anything.
   let actionListSum = actionList.map(function(x){return (x>0) ? 1 : 0}).reduce((a, b) => a + b, 0);
@@ -84,14 +104,17 @@ var determinePlayerAction = function(actionList){
 
   // Finally, we check to see if any action has been recognized enough to be selected
   // as the user's action.
+  let actionReturned = false;
   for (let i=0; i<masterActionList.length; i++){
-    if (actionCountMap[masterActionList[i]] > actionThreshold){
-      console.log('User Action Selected: ' + masterActionList[i]);
+    if (actionCountMap[masterActionList[i]] > actionThresholdList[i]){
+      console.log(USERS_TURN, legal_actions)
+      console.log('User Action Selected: ' + masterActionList[i], raiseAmount);
       if (legal_actions.includes(masterActionList[i])) {
         process_turn(masterActionList[i], 100);
         actionCountMap = new Map();
+        actionReturned = true;
       }
     }
   }
-  return;
+  return actionReturned;
 };

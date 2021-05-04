@@ -80,7 +80,18 @@ function gestureIsCheck(hand){
 function gestureIsFold(hand){
   let handVelocity = hand.palmVelocity;   // I've assumed the elements are [x, y, z] - need to confirm
   let maxHorizontalVelocity = Math.max(handVelocity[0], handVelocity[1]);
+  let handNormalVector = hand.palmNormal; // Adding robustness for the raise feature below.
+  let palmFacingDown = (handNormalVector[0] > -0.1) && (handNormalVector[2] > -0.1)
   if (isOpenPalm(hand) && maxHorizontalVelocity>=minFoldSpeed){
+    return true;
+  }else{
+    return false;
+  }
+}
+
+function gestureIsRaise(hand){
+  let handNormalVector = hand.palmNormal;
+  if (isOpenPalm(hand) && (handNormalVector[0] < -0.5) && (handNormalVector[2] < -0.5)){
     return true;
   }else{
     return false;
