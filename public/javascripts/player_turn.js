@@ -19,9 +19,9 @@ Leap.loop({ hand: function(hand) {
   three checks in a row, the action is probably a check). */
 
   // If the user is not up, we do nothing.
-  if (!USERS_TURN){
-    return;
-  };
+  // if (!USERS_TURN){
+  //   return;
+  // };
 
   // Start simple: if the hand stays visible, detect what we think the action is.
   if (lastTimeVisible < hand.timeVisible) {
@@ -52,9 +52,9 @@ var processSpeech = function(transcript) {
   };
 
   // If the user is not up, we do nothing.
-  if (!USERS_TURN){
-    return;
-  };
+  // if (!USERS_TURN){
+  //   return;
+  // };
   // Skip if the transcript is empty.
   if (transcript.length < 1){
     var processed = false;
@@ -100,20 +100,35 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
   };
 
   // To determine the actions a user can say
-  let legal_actions = round.board.legal_actions('user');
+  // let legal_actions = round.board.legal_actions('user');
 
   // Finally, we check to see if any action has been recognized enough to be selected
   // as the user's action.
   let actionReturned = false;
   for (let i=0; i<masterActionList.length; i++){
     if (actionCountMap[masterActionList[i]] > actionThresholdList[i]){
-      console.log(USERS_TURN, legal_actions)
+      // console.log(USERS_TURN, legal_actions)
       console.log('User Action Selected: ' + masterActionList[i], raiseAmount);
-      if (legal_actions.includes(masterActionList[i])) {
-        process_turn(masterActionList[i], 100);
+      // if (legal_actions.includes(masterActionList[i])) {
+        // process_turn(masterActionList[i], 100);
+      if (masterActionList[i] === 'fold') {
+        human_fold();
+        actionCountMap = new Map();
+        actionReturned = true;
+      } else if (masterActionList[i] === 'call') {
+        human_call();
+        actionCountMap = new Map();
+        actionReturned = true;
+      } else if (masterActionList[i] === 'check') {
+        human_call();
+        actionCountMap = new Map();
+        actionReturned = true;
+      } else  if (masterActionList[i] === "raise") {
+        handle_human_bet(raiseAmount);
         actionCountMap = new Map();
         actionReturned = true;
       }
+      // }
     }
   }
   return actionReturned;
