@@ -7,7 +7,7 @@ const masterActionList = ["fold", "check", "raise", "call"];
 // Variables to detect gestures.
 var lastTimeVisible = 0;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
-const actionThresholdList = [10, 10, 1, 1];   // How many of the same action do we need to see before choosing that action?
+const actionThresholdList = [1, 1, 1, 1];   // How many of the same action do we need to see before choosing that action?
 
 // MAIN GAME LOOP
 // Called every time the Leap provides a new frame of data
