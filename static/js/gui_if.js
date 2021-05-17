@@ -294,11 +294,11 @@ function gui_hide_fold_call_click () {
 
 function gui_setup_fold_call_click (show_fold, call_text,
   fold_func, call_func, round_over) {
-  if (round_over) {
-    console.log('Wait 8 seconds');
-    setTimeout(autoplay_new_round, 8000);
-    return;
-  }
+  // if (round_over) {
+  //   console.log('Wait 8 seconds');
+  //   setTimeout(autoplay_new_round, 8000);
+  //   return;
+  // }
 
   // Here we have a coupling of the functions 'human_fold' and 'human_call'
   var buttons = document.getElementById('action-options');
