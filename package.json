@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "double-metaphone": "^2.0.0",
+    "fuzzyset": "^1.0.6",
+    "fuzzyset.js": "^1.0.6",
+    "natural": "^5.0.3"
+  }
+}

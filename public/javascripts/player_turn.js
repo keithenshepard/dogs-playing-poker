@@ -42,7 +42,7 @@ Leap.loop({ hand: function(hand) {
 // Output: 
 //    processed, a boolean indicating whether the system reacted to the speech or not
 var processSpeech = function(transcript) {
-  // Helper function to detect if any commands appear in a string
+  /* Helper function to detect if any commands appear in a string. Keeping this in case something breaks!
   var userSaid = function(str, commands) {
     for (var i = 0; i < commands.length; i++) {
       if (str.indexOf(commands[i]) > -1)
@@ -50,11 +50,18 @@ var processSpeech = function(transcript) {
     }
     return false;
   };
+  */
+  var userSaid = function(transcriptStr, commandCode) {
+    let splitTranscriptStr = transcriptStr.split(" ");
+    for (var i = 0; i < splitTranscriptStr.length; i++) {
+      let strCode = doubleMetaphone(splitTranscriptStr[i])[0];
+      if (strCode.match("[A-Z]*".concat(commandCode).concat("[A-Z]*"))) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  // If the user is not up, we do nothing.
-  // if (!USERS_TURN){
-  //   return;
-  // };
   // Skip if the transcript is empty.
   if (transcript.length < 1){
     var processed = false;
@@ -64,21 +71,22 @@ var processSpeech = function(transcript) {
   let actionList = [0, 0, 0, 0];
   let raiseAmount = 0;
   // Right now, we are just using voice recognition to implement betting.
-  if (userSaid(transcript, ["call", "all"])){
+  if (userSaid(transcript, "KL")){//["call", "all"])){
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
     actionList = [0, 0, 0, actionThresholdList[3]+1];
-  }else if (userSaid(transcript, ["raise", "ray", "rays", "Ray"])){
+  }else if (userSaid(transcript, "RS")){//["raise", "ray", "rays", "Ray"])){
     actionList = [0, 0, actionThresholdList[2]+1, 0];
     let digitRegEx = /\d+/;
     let foundRaiseAmount = parseInt(transcript.match(digitRegEx));
     if (foundRaiseAmount) {
       raiseAmount = foundRaiseAmount
     }
-  }else if (userSaid(transcript, ["check", "Shaq", "track"])){
+  }else if (userSaid(transcript, "XK")){//["check", "Shaq", "track"])){
     actionList = [0, actionThresholdList[1]+1, 0, 0];
-  }else if (userSaid(transcript, ["fold", "full", "folding", "old"])){
+  }else if (userSaid(transcript, "LT")){//["fold", "full", "folding", "old"])){
     actionList = [actionThresholdList[0]+1, 0, 0, 0];
   };
+  console.log(actionList)
   let actionReturned = determinePlayerAction(actionList, raiseAmount);
   return actionReturned; // replacement for processed
 };
