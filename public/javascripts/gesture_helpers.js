@@ -4,11 +4,9 @@ const minCheckSpeed = 5; // Min z-velocity needed to check (in mm/sec)
 const minPalmValue = 0.3; // Max value of closedness to be considered open
 const minFoldSpeed = 50; // Min horizontal velocity needed to fold (in mm/sec)
 
-
 /*
 START WITH HELPER FUNCTIONS
 */
-// I am not sure what is best organizationally here. Maybe classes? Lmk. -Spencer
 
 // Computes the number of extended fingers on the hand
 function computeExtendedFingers(hand){
@@ -25,12 +23,12 @@ function computeExtendedFingers(hand){
 function computeClosedness(hand){
   var fingerSum = 0;
   for(var i=0; i<hand.fingers.length; i++){
-    var finger = hand.fingers[i];
-    var meta = finger.bones[0].direction();
-    var proxi = finger.bones[1].direction();
-    var inter = finger.bones[2].direction();
-    var dotMetaProxi = Leap.vec3.dot(meta, proxi);
-    var dotProxiInter = Leap.vec3.dot(proxi, inter);
+    let finger = hand.fingers[i];
+    let meta = finger.bones[0].direction();
+    let proxi = finger.bones[1].direction();
+    let inter = finger.bones[2].direction();
+    let dotMetaProxi = Leap.vec3.dot(meta, proxi);
+    let dotProxiInter = Leap.vec3.dot(proxi, inter);
     fingerSum += dotMetaProxi + dotProxiInter;
   }
   return fingerSum / 10;
@@ -43,7 +41,7 @@ END HELPER FUNCTIONS. DETERMINE GESTURES.
 // Uses computeExtendedFingers and computeClosedness
 // to determine if a hand is in a fist or not.
 function isFist(hand){
-  if(computeClosedness(hand)<=maxFistValue && computeExtendedFingers(hand)<1){
+  if(computeClosedness(hand)<=maxFistValue && computeExtendedFingers(hand)==0){
     return true;
   }else{
     return false;
@@ -53,7 +51,7 @@ function isFist(hand){
 // Uses computeExtendedFingers and computeClosedness
 // to determine if a hand is an open palm or not.
 function isOpenPalm(hand){
-  if(computeClosedness(hand)>=minPalmValue && computeExtendedFingers(hand)>=3){
+  if(computeClosedness(hand)>=minPalmValue && computeExtendedFingers(hand)>=4){
     return true;
   }else{
     return false;
@@ -61,7 +59,7 @@ function isOpenPalm(hand){
 }
 
 /*
-END GESTURES. DETERMINE ACTIONS. (no bet detection - this should be done via voice for now).
+END GESTURES. DETERMINE ACTIONS.
  */
 
 // Using the shape of the hand and its velocity, determines if the gesture
