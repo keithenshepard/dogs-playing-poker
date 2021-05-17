@@ -7,7 +7,7 @@ const masterActionList = ["fold", "check", "raise", "call"];
 // Variables to detect gestures.
 var lastTimeVisible = -1;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
-const actionThresholdList = [1, 3, 1, 1];   // How many of the same action do we need to see before choosing that action?
+const actionThresholdList = [3, 3, 1, 1];   // How many of the same action do we need to see before choosing that action?
 var canSendAction = true;
 
 // MAIN GESTURE LOOP: Called every time the Leap provides a new frame of data
@@ -22,7 +22,7 @@ the number of times we need to see an action before identifying it). Once this i
 we send the action to our execution function.
  */
 Leap.loop({ hand: function(hand) {
-    //console.log(!(canSendAction), !(players[current_bettor_index].name == "You"))
+    console.log(!(canSendAction), players[current_bettor_index].name)
     if (canSendAction) {
       // Start simple: if the hand stays visible, detect what we think the action is.
       if (lastTimeVisible < hand.timeVisible) {

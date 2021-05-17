@@ -788,6 +788,7 @@ function handle_end_of_round () {
 function autoplay_new_round () {
   if (STOP_AUTOPLAY > 0) {
     STOP_AUTOPLAY = 0;
+    canSendAction = true;
     new_game();
   } else {
     new_round();
@@ -937,6 +938,8 @@ function human_fold () {
 }
 
 function bet_from_bot (x) {
+  canSendAction = true;
+
   var b = 0;
   var n = current_bet_amount - players[x].subtotal_bet;
   if (!board[0]) b = bot_get_preflop_bet();
