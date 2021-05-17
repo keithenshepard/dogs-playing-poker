@@ -3,7 +3,6 @@ If you improve this software or find a bug, please let me know: orciu@users.sour
 Project home page: http://sourceforge.net/projects/jsholdem/
 */
 "use strict";
-
 var START_DATE;
 var NUM_ROUNDS;
 var STOP_AUTOPLAY = 0;
@@ -195,7 +194,8 @@ function new_round () {
     gui_setup_fold_call_click("Start a new game",
                               0,
                               new_game,
-                              new_game);
+                              new_game,
+    );
     return;
   }
   HUMAN_GOES_ALL_IN = 0;
@@ -381,6 +381,7 @@ function deal_fifth () {
 }
 
 function main () {
+  console.log("handled")
   gui_hide_guick_raise();
   var increment_bettor_index = 0;
   if (players[current_bettor_index].status == "BUST" ||
@@ -529,8 +530,10 @@ function main () {
   }
   if (can_break) {
     setTimeout(ready_for_next_card, 999 * global_speed);
+    return;
   } else {
     setTimeout(main, 999 * global_speed);
+    return;
   }
 }
 
@@ -714,19 +717,6 @@ function handle_end_of_round () {
   }
   detail = " (<a href='javascript:alert(\"" + detail + "\")'>details</a>)";
 
-  var quit_text = "Restart";
-  var quit_func = new_game;
-  var continue_text = "Go on";
-  var continue_func = new_round;
-
-  if (players[0].status == "BUST" && !human_loses) {
-    continue_text = 0;
-    quit_func = function () {
-      parent.STOP_AUTOPLAY = 1;
-    };
-    setTimeout(autoplay_new_round, 1500 + 1100 * global_speed);
-  }
-
   var num_playing = number_of_active_players();
   if (num_playing < 2) {
     // Convoluted way of finding the active player and give him the pot
@@ -751,10 +741,24 @@ function handle_end_of_round () {
              winner_text + "</b></font>" + detail + "<br>";
   gui_write_game_response(html);
 
+  var quit_text = "Restart";
+  var quit_func = new_game;
+  var continue_text = "Go on";
+  var continue_func = new_round;
+  var autoplay_round = true;
+
+  if (players[0].status == "BUST" && !human_loses) {
+    continue_text = 0;
+    quit_func = function () {
+      parent.STOP_AUTOPLAY = 1;
+    };
+    setTimeout(autoplay_new_round, 1500 + 1100 * global_speed);
+  }
   gui_setup_fold_call_click(quit_text,
                             continue_text,
                             quit_func,
-                            continue_func);
+                            continue_func,
+                            autoplay_round);
 
   var elapsed_milliseconds = ((new Date()) - START_DATE);
   var elapsed_time = makeTimeString(elapsed_milliseconds);
