@@ -9,7 +9,7 @@ recognition changes come from how we postprocess the speech).
 /*****************************************************************/
 /******** SPEECH RECOGNITION SETUP YOU CAN IGNORE ****************/
 /*****************************************************************/
-const DEBUGSPEECH = true;
+let DEBUGSPEECH = true;
 
 var debouncedProcessSpeech = _.debounce(processSpeech, 500);
 
