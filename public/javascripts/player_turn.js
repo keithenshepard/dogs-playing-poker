@@ -111,18 +111,26 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
       // if (legal_actions.includes(masterActionList[i])) {
         // process_turn(masterActionList[i], 100);
       if (masterActionList[i] === 'fold') {
+        
         human_fold();
+
         actionCountMap = new Map();
         actionReturned = true;
       } else if (masterActionList[i] === 'call') {
+        let call_sound = new Audio('sounds/chipslight.wav');
+        call_sound.play();
         human_call();
         actionCountMap = new Map();
         actionReturned = true;
       } else if (masterActionList[i] === 'check') {
+        let check_sound = new Audio('sounds/check.wav');
+        check_sound.play();
         human_call();
         actionCountMap = new Map();
         actionReturned = true;
       } else  if (masterActionList[i] === "raise") {
+        let raise_sound = new Audio('sounds/chips.wav');
+        raise_sound.play();
         handle_human_bet(raiseAmount);
         actionCountMap = new Map();
         actionReturned = true;
