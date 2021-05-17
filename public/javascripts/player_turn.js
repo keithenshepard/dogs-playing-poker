@@ -8,6 +8,7 @@ const masterActionList = ["fold", "check", "raise", "call"];
 var lastTimeVisible = -1;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
 const actionThresholdList = [1, 3, 1, 1];   // How many of the same action do we need to see before choosing that action?
+var canSendAction = true;
 
 // MAIN GESTURE LOOP: Called every time the Leap provides a new frame of data
 /*
@@ -21,17 +22,24 @@ the number of times we need to see an action before identifying it). Once this i
 we send the action to our execution function.
  */
 Leap.loop({ hand: function(hand) {
-  // Start simple: if the hand stays visible, detect what we think the action is.
-  if (lastTimeVisible < hand.timeVisible) {
-    // Start by resetting the time variable
-    lastTimeVisible = hand.timeVisible;
-    // Check if each action is performed, then identify the action.
-    // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
-    let actionList = [gestureIsFold(hand) ? 1 : 0, gestureIsCheck(hand) ? 1 : 0, gestureIsRaise(hand) ? 2 : 0, 0]; // Bet functionality implemented via speech
-    determinePlayerAction(actionList);
-  } else {
-    lastTimeVisible = -1; // If the hand has appeared again, reset it.
-  };
+    //console.log(!(canSendAction), !(players[current_bettor_index].name == "You"))
+    if (canSendAction) {
+      // Start simple: if the hand stays visible, detect what we think the action is.
+      if (lastTimeVisible < hand.timeVisible) {
+        // Start by resetting the time variable
+        lastTimeVisible = hand.timeVisible;
+        // Check if each action is performed, then identify the action.
+        // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
+        let actionList = [gestureIsFold(hand) ? 1 : 0, gestureIsCheck(hand) ? 1 : 0, gestureIsRaise(hand) ? 2 : 0, 0]; // Bet functionality implemented via speech
+        determinePlayerAction(actionList);
+      } else {
+        lastTimeVisible = -1; // If the hand has appeared again, reset it.
+      };
+    } else {
+      if (players[current_bettor_index].name != "You"){
+        canSendAction = true;
+      }
+    }
 }}).use('screenPosition', {scale: LEAPSCALE});
 
 // processSpeech(transcript)
@@ -55,8 +63,11 @@ var processSpeech = function(transcript) {
     }
     return false;
   }
-  // Skip if the transcript is empty.
-  if (transcript.length < 1){
+  if (players[current_bettor_index].name != "You"){
+    canSendAction = true;
+  };
+  // Skip if the transcript is empty or the player is not up.
+  if ((transcript.length < 1) || !(canSendAction)){
     var processed = false;
     return processed;
   }
@@ -85,7 +96,13 @@ var processSpeech = function(transcript) {
 // TODO: Is there a way to find the current high bid on the board? We could then set this raise amount based on that for expert players.
 // TODO: Is there a way to find the amount of chips a player has remaining? We could then create an "all in" feature
 // TODO: Change default raiseAmount to be something different.
-var determinePlayerAction = function(actionList, raiseAmount=100){
+var determinePlayerAction = function(actionList, raiseAmount=current_min_raise){
+  //console.log(!(canSendAction), !(players[current_bettor_index].name != "You"))
+  if (!(canSendAction) || !(players[current_bettor_index].name == "You")){
+    return false;
+  };
+
+
   // We start by counting the number of actions recognized in a given action list. If there are
   // more than one action recognized, we dismiss the actionList and don't do anything.
   let actionListSum = actionList.map(function(x){return (x>0) ? 1 : 0}).reduce((a, b) => a + b, 0);
@@ -107,6 +124,7 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
   for (let i=0; i<masterActionList.length; i++){
     if (actionCountMap[masterActionList[i]] > actionThresholdList[i]){
       console.log('User Action Selected: ' + masterActionList[i], raiseAmount);
+      canSendAction = false;
       if (masterActionList[i] === 'fold') {
         
         human_fold();
@@ -137,5 +155,3 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
   }
   return actionReturned;
 };
-
-// players[current_player_index]
