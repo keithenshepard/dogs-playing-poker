@@ -5,24 +5,22 @@ const LEAPSCALE = 0.6;
 const masterActionList = ["fold", "check", "raise", "call"];
 
 // Variables to detect gestures.
-var lastTimeVisible = 0;   // Last time we saw the hand, how long had it been visible?
+var lastTimeVisible = -1;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
 const actionThresholdList = [1, 1, 1, 1];   // How many of the same action do we need to see before choosing that action?
 
-// MAIN GAME LOOP
-// Called every time the Leap provides a new frame of data
+// MAIN GESTURE LOOP: Called every time the Leap provides a new frame of data
+/*
+In this loop, we work to determine user gestures. We start by determining if the hand
+is still visible (i.e. has been over the Leap for some time). So long as the hand stays over
+the sensor, we assume the user is trying to make a gesture.
+
+Once the hand is over the Leap, we use our gesture recognition helpers to try and identify
+which gesture is being executed. We compare these to a threshold for each action (i.e.
+the number of times we need to see an action before identifying it). Once this is completed,
+we send the action to our execution function.
+ */
 Leap.loop({ hand: function(hand) {
-  /* Start by determining the user action (if any).
-  Since this function will be called every time the Leap provides
-  a new frame of data, it might make sense to have some persistent
-  variables that track the last few actions (i.e. if we identify
-  three checks in a row, the action is probably a check). */
-
-  // If the user is not up, we do nothing.
-  // if (!USERS_TURN){
-  //   return;
-  // };
-
   // Start simple: if the hand stays visible, detect what we think the action is.
   if (lastTimeVisible < hand.timeVisible) {
     // Start by resetting the time variable
@@ -31,8 +29,9 @@ Leap.loop({ hand: function(hand) {
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
     let actionList = [gestureIsFold(hand) ? 1 : 0, gestureIsCheck(hand) ? 1 : 0, gestureIsRaise(hand) ? 2 : 0, 0]; // Bet functionality implemented via speech
     determinePlayerAction(actionList);
-  }
-
+  } else {
+    lastTimeVisible = -1; // If the hand has appeared again, reset it.
+  };
 }}).use('screenPosition', {scale: LEAPSCALE});
 
 // processSpeech(transcript)
@@ -42,14 +41,9 @@ Leap.loop({ hand: function(hand) {
 // Output: 
 //    processed, a boolean indicating whether the system reacted to the speech or not
 var processSpeech = function(transcript) {
-  /* Helper function to detect if any commands appear in a string. Keeping this in case something breaks!
-  var userSaid = function(str, commands) {
-    for (var i = 0; i < commands.length; i++) {
-      if (str.indexOf(commands[i]) > -1)
-        return true;
-    }
-    return false;
-  };
+  /*
+  We start with an updated userSaid function, which uses RegEx commands and a phonetic algorithm
+  to improve speech recognition.
   */
   var userSaid = function(transcriptStr, commandCode) {
     let splitTranscriptStr = transcriptStr.split(" ");
@@ -61,32 +55,29 @@ var processSpeech = function(transcript) {
     }
     return false;
   }
-
   // Skip if the transcript is empty.
   if (transcript.length < 1){
     var processed = false;
     return processed;
   }
-
+  // If the transcript is nonempty, attempt to perform recognition to see if we can identify a command.
   let actionList = [0, 0, 0, 0];
   let raiseAmount = 0;
-  // Right now, we are just using voice recognition to implement betting.
-  if (userSaid(transcript, "KL")){//["call", "all"])){
+  if (userSaid(transcript, "KL")){ // Call phonetic matching
     // actionList is associated with masterActionList: ["fold", "check", "raise", "call"]
     actionList = [0, 0, 0, actionThresholdList[3]+1];
-  }else if (userSaid(transcript, "RS")){//["raise", "ray", "rays", "Ray"])){
+  }else if (userSaid(transcript, "RS")){ // Raise phonetic matching
     actionList = [0, 0, actionThresholdList[2]+1, 0];
     let digitRegEx = /\d+/;
     let foundRaiseAmount = parseInt(transcript.match(digitRegEx));
     if (foundRaiseAmount) {
-      raiseAmount = foundRaiseAmount
-    }
-  }else if (userSaid(transcript, "XK")){//["check", "Shaq", "track"])){
+      raiseAmount = foundRaiseAmount;
+    };
+  }else if (userSaid(transcript, "XK")){ // Check phonetic matching
     actionList = [0, actionThresholdList[1]+1, 0, 0];
-  }else if (userSaid(transcript, "LT")){//["fold", "full", "folding", "old"])){
+  }else if (userSaid(transcript, "LT")){ // Fold phonetic matching
     actionList = [actionThresholdList[0]+1, 0, 0, 0];
   };
-  console.log(actionList)
   let actionReturned = determinePlayerAction(actionList, raiseAmount);
   return actionReturned; // replacement for processed
 };

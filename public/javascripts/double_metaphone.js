@@ -1,3 +1,15 @@
+/*
+
+METAPHONE IMPLEMENTATION CODE TAKEN FROM THE double-metaphone PACKAGE.
+
+The plan was to import this library. However, I had some problems getting this to work
+with the front-end implementation. Since the overall implementation was a single file, I
+ended up copying and pasting the file to get it to work. The link to the original package
+can be found here: npmjs.com/package/double-metaphone. This is simply the index.js file
+from that package.
+
+ */
+
 // Match vowels (including `Y`).
 var vowels = /[AEIOUY]/
 
