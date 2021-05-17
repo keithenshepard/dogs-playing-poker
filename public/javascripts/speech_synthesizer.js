@@ -1,6 +1,6 @@
-
 // SPEECH SYNTHESIS SETUP
 var voicesReady = false;
+var VOICEINDEX = 17;
 window.speechSynthesis.onvoiceschanged = function() {
   voicesReady = true;
   // Uncomment to see a list of voices

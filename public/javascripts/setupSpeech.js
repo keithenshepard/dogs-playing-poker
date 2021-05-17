@@ -1,6 +1,16 @@
+/*
+SPEECH RECOGNITION CODE RE-USED FROM MP3.
+
+Some modifications have been made for our purposes, like changed to how
+recognition is killed and restarted, but most is left the same (our speech
+recognition changes come from how we postprocess the speech).
+ */
+
 /*****************************************************************/
 /******** SPEECH RECOGNITION SETUP YOU CAN IGNORE ****************/
 /*****************************************************************/
+const DEBUGSPEECH = true;
+
 var debouncedProcessSpeech = _.debounce(processSpeech, 500);
 
 var recognition = new webkitSpeechRecognition();

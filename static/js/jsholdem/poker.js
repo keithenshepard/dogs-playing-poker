@@ -294,7 +294,10 @@ function deal_and_write_a () {
 
   start_player = current_player = get_next_player_position(button_index, 1);
   // Deal cards to players still active
+  let card_sound = new Audio('../../sounds/card.wav');
   do {
+    card_sound.play();
+    
     players[current_player].carda = cards[deck_index++];
     current_player = get_next_player_position(current_player, 1);
   } while (current_player != start_player);

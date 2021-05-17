@@ -7,7 +7,7 @@ const masterActionList = ["fold", "check", "raise", "call"];
 // Variables to detect gestures.
 var lastTimeVisible = -1;   // Last time we saw the hand, how long had it been visible?
 var actionCountMap = new Map();   // Map that counts occurrences of actions
-const actionThresholdList = [1, 1, 1, 1];   // How many of the same action do we need to see before choosing that action?
+const actionThresholdList = [1, 3, 1, 1];   // How many of the same action do we need to see before choosing that action?
 
 // MAIN GESTURE LOOP: Called every time the Leap provides a new frame of data
 /*
@@ -106,23 +106,28 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
   let actionReturned = false;
   for (let i=0; i<masterActionList.length; i++){
     if (actionCountMap[masterActionList[i]] > actionThresholdList[i]){
-      // console.log(USERS_TURN, legal_actions)
       console.log('User Action Selected: ' + masterActionList[i], raiseAmount);
-      // if (legal_actions.includes(masterActionList[i])) {
-        // process_turn(masterActionList[i], 100);
       if (masterActionList[i] === 'fold') {
+        
         human_fold();
+
         actionCountMap = new Map();
         actionReturned = true;
       } else if (masterActionList[i] === 'call') {
+        let call_sound = new Audio('sounds/chipslight.wav');
+        call_sound.play();
         human_call();
         actionCountMap = new Map();
         actionReturned = true;
       } else if (masterActionList[i] === 'check') {
+        let check_sound = new Audio('sounds/check.wav');
+        check_sound.play();
         human_call();
         actionCountMap = new Map();
         actionReturned = true;
       } else  if (masterActionList[i] === "raise") {
+        let raise_sound = new Audio('sounds/chips.wav');
+        raise_sound.play();
         handle_human_bet(raiseAmount);
         actionCountMap = new Map();
         actionReturned = true;
@@ -132,3 +137,5 @@ var determinePlayerAction = function(actionList, raiseAmount=100){
   }
   return actionReturned;
 };
+
+// players[current_player_index]
