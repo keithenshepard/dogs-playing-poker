@@ -384,7 +384,6 @@ function deal_fifth () {
 }
 
 function main () {
-  console.log("handled")
   gui_hide_guick_raise();
   var increment_bettor_index = 0;
   if (players[current_bettor_index].status == "BUST" ||

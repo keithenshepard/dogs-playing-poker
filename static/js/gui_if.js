@@ -294,9 +294,8 @@ function gui_hide_fold_call_click () {
 
 function gui_setup_fold_call_click (show_fold, call_text,
   fold_func, call_func, round_over) {
-  console.log(round_over)
   if (round_over) {
-    alert('Wait 8 seconds');
+    console.log('Wait 8 seconds');
     setTimeout(autoplay_new_round, 8000);
     return;
   }
