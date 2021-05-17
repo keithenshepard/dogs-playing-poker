@@ -348,7 +348,7 @@ function gui_setup_option_buttons (name_func,
 
   internal_le_button(buttons, 'mode-button', mode_func);
   internal_le_button(buttons, 'help-button', help_func);
-  internal_le_button(buttons, 'check-button', check_func);
+  // internal_le_button(buttons, 'check-button', check_func);
 }
 
 function internal_hide_le_button (buttons, button_name, button_func) {
@@ -366,7 +366,7 @@ function gui_hide_setup_option_buttons (name_func,
   internal_hide_le_button(buttons, 'speed-button');
   internal_hide_le_button(buttons, 'mode-button');
   internal_hide_le_button(buttons, 'help-button');
-  internal_hide_le_button(buttons, 'check-button');
+  // internal_hide_le_button(buttons, 'check-button');
 }
 
 function gui_hide_game_response () {
