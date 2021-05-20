@@ -29,11 +29,11 @@ Please refer to the different sections for whichever version of python you are r
 To start, navigate to the directory that contains all the code files.
 
 #### Python 2
-- python -m SimpleHTTPServer
+```python -m SimpleHTTPServer```
 
 #### Python 3
-- python3 -m http.server 
-- python -m http.server
+```python3 -m http.server```  
+```python -m http.server```
 
 This will start up the game and should ask you to use your mouse to choose the number of opponent players you would like to play against.
 
